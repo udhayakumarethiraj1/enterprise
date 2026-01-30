@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "udhayakumarethiraj/trendstore"
+        IMAGE_TAG = "latest"
+        AWS_REGION = "ap-south-1"
+        EKS_CLUSTER = "my-cluster"
+    }
+
+    stages {
+        stage('Checkout Repo') {
+            steps {
+                git branch: 'main',
+                    url: 'git@github.com:udhayakumarethiraj-git/Trendstore.git',
+                    credentialsId: 'gitrepo'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(
+                     credentialsId: 'dockerhub-creds',
+                     usernameVariable: 'DOCKER_USER',
+                     passwordVariable: 'DOCKER_PASS'
+                 )]) {
+                     sh """
+                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                         docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
+                         docker logout
+                     """
+                 }
+             }
+         }
+
+
+        stage('Deploy to EKS') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                  credentialsId: 'aws-creds']]) {
+                    script {
+                        // Update kubeconfig for existing cluster
+                        sh "aws eks --region ${AWS_REGION} update-kubeconfig --name ${EKS_CLUSTER}"
+
+                        // Apply all manifests from repo root
+                        sh """
+                            kubectl apply -f deployment.yaml
+                            kubectl apply -f service.yaml
+
+                            kubectl rollout restart deployment trendstore
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Docker image built and deployed to EKS cluster: ${EKS_CLUSTER}"
+        }
+        failure {
+            echo "❌ Pipeline failed"
+        }
+    }
+}
+

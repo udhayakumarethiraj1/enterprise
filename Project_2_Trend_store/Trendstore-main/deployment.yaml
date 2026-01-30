@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trendstore
+  labels:
+    app: trendstore
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trendstore
+  template:
+    metadata:
+      labels:
+        app: trendstore
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: trendstore
+          image: udhayakumarethiraj/trendstore:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+
