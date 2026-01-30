@@ -1,0 +1,238 @@
+Branch indexing
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/caches/git-00f99e03cec9ff2d2398e5aa30a5049a/.git # timeout=10
+Setting origin to git@github.com:udhayakumarethiraj-git/Project_3_Online_shopping.git
+ > git config remote.origin.url git@github.com:udhayakumarethiraj-git/Project_3_Online_shopping.git # timeout=10
+Fetching origin...
+Fetching upstream changes from origin
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git config --get remote.origin.url # timeout=10
+using GIT_SSH to set credentials gitrepo
+Verifying host key using known hosts file
+ > git fetch --no-tags --force --progress -- origin +refs/heads/*:refs/remotes/origin/* # timeout=10
+Seen branch in repository origin/dev
+Seen branch in repository origin/main
+Seen 2 remote branches
+Obtained Jenkinsfile from 6cf70946f5033cd7a7f89542f6c4e45125eb2737
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/Project_Online_Shopping_dev
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $DOCKERHUB_CREDS or $DOCKERHUB_CREDS_PSW
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Repo)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential gitrepo
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Project_Online_Shopping_dev/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url git@github.com:udhayakumarethiraj-git/Project_3_Online_shopping.git # timeout=10
+Fetching without tags
+Fetching upstream changes from git@github.com:udhayakumarethiraj-git/Project_3_Online_shopping.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+using GIT_SSH to set credentials gitrepo
+Verifying host key using known hosts file
+ > git fetch --no-tags --force --progress -- git@github.com:udhayakumarethiraj-git/Project_3_Online_shopping.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+Checking out Revision 6cf70946f5033cd7a7f89542f6c4e45125eb2737 (dev)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 6cf70946f5033cd7a7f89542f6c4e45125eb2737 # timeout=10
+Commit message: "Auto build trigger test for dev branch"
+ > git rev-list --no-walk 5653e39f8f5c3b3c348e6c59310c8cfccccbd994 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Image)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+🚀 Building Docker image: udhayakumarethiraj/dev:latest
+[Pipeline] sh
++ ./build.sh udhayakumarethiraj/dev latest
+🚀 Building Docker image...
+Image: udhayakumarethiraj/dev:latest
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 276B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/nginx:alpine
+#2 DONE 1.4s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/3] FROM docker.io/library/nginx:alpine@sha256:7d7a15b8a280c661051955f14c2b91fed3e23724ddba18d2f53e8b44e74ab37a
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 1.17kB done
+#5 DONE 0.0s
+
+#6 [2/3] RUN rm -rf /usr/share/nginx/html/*
+#6 CACHED
+
+#7 [3/3] COPY devops-build/build /usr/share/nginx/html
+#7 CACHED
+
+#8 exporting to image
+#8 exporting layers done
+#8 writing image sha256:23efd3d7f0397b6dff10cc5661f6efacc1dbea3945bb35fc1dea1982807b1f26 done
+#8 naming to docker.io/udhayakumarethiraj/dev:latest done
+#8 DONE 0.0s
+✅ Docker image built successfully!
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Push Docker Image)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+🔑 Logging in to DockerHub...
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [DOCKERHUB_CREDS_PSW]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
++ echo ****
++ docker login -u udhayakumarethiraj --password-stdin
+
+WARNING! Your credentials are stored unencrypted in '/var/lib/jenkins/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+Login Succeeded
+[Pipeline] echo
+📦 Pushing Docker image: udhayakumarethiraj/dev:latest
+[Pipeline] sh
++ docker push udhayakumarethiraj/dev:latest
+The push refers to repository [docker.io/udhayakumarethiraj/dev]
+8eb7ceaa64ac: Preparing
+860161d9cff7: Preparing
+8b4b77877dd1: Preparing
+06d5972670c6: Preparing
+e22da3f459ae: Preparing
+536851695bd2: Preparing
+14b08f05bc0a: Preparing
+2f3eeb9b695d: Preparing
+ae33d91d45a6: Preparing
+989e799e6349: Preparing
+14b08f05bc0a: Waiting
+2f3eeb9b695d: Waiting
+ae33d91d45a6: Waiting
+989e799e6349: Waiting
+536851695bd2: Waiting
+8eb7ceaa64ac: Layer already exists
+8b4b77877dd1: Layer already exists
+860161d9cff7: Layer already exists
+e22da3f459ae: Layer already exists
+06d5972670c6: Layer already exists
+2f3eeb9b695d: Layer already exists
+989e799e6349: Layer already exists
+ae33d91d45a6: Layer already exists
+536851695bd2: Layer already exists
+14b08f05bc0a: Layer already exists
+latest: digest: sha256:f2c7abafae88610effbdfaa7adc3e266f6b0951b1033be45c8a4519309c3ff22 size: 2406
+[Pipeline] echo
+✅ Docker image pushed successfully for branch: dev
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy Docker Image)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+🚀 Deploying Docker image: udhayakumarethiraj/dev:latest
+[Pipeline] sh
++ ./deploy.sh udhayakumarethiraj/dev latest dev
+🔍 Checking local Docker image...
+📦 Saving Docker image...
+📤 Copying files to remote server...
+🚀 Deploying on remote server...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1044-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Fri Jan 30 13:10:07 UTC 2026
+
+  System load:  0.0                Processes:                159
+  Usage of /:   39.4% of 11.45GB   Users logged in:          1
+  Memory usage: 11%                IPv4 address for enp39s0: 172.31.27.2
+  Swap usage:   0%
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+5 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+New release '24.04.3 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+📁 Ensuring remote directory exists...
+📥 Loading Docker image...
+The image udhayakumarethiraj/dev:latest already exists, renaming the old one with ID sha256:2657b64853ae6b438576528c90387f3c48768b32158ce74f852f3ad6fee87a77 to empty string
+Loaded image: udhayakumarethiraj/dev:latest
+▶️ Exporting variables for docker-compose...
+🛑 Stopping existing container (if any)...
+ Container devops-build-dev Stopping 
+ Container devops-build-dev Stopped 
+ Container devops-build-dev Removing 
+ Container devops-build-dev Removed 
+ Network dev_default Removing 
+ Network dev_default Removed 
+▶️ Exporting variables for docker-compose...
+▶️ Starting container with docker-compose...
+ Network dev_default Creating 
+ Network dev_default Created 
+ Container devops-build-dev Creating 
+ Container devops-build-dev Created 
+ Container devops-build-dev Starting 
+ Container devops-build-dev Started 
+📦 Running containers:
+fffe3ce3bd63   udhayakumarethiraj/dev:latest    "/docker-entrypoint.…"   Less than a second ago   Up Less than a second   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   devops-build-dev
+🧹 Removing image tar after load...
+🎉 Deployment successful!
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+🧹 Cleaning up Docker environment...
+[Pipeline] sh
++ docker logout
+Removing login credentials for https://index.docker.io/v1/
+[Pipeline] sh
++ docker image prune -f
+Deleted Images:
+untagged: udhayakumarethiraj/dev@sha256:a825d0fda88e03fd73eeedc52a8162915ff4618ccbf06f934ff3c3dd63558661
+deleted: sha256:2657b64853ae6b438576528c90387f3c48768b32158ce74f852f3ad6fee87a77
+
+Total reclaimed space: 0B
+[Pipeline] echo
+✅ Pipeline completed successfully for branch: dev
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
