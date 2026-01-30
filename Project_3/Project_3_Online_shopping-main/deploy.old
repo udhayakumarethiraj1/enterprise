@@ -1,0 +1,58 @@
+#!/bin/bash
+set -e
+
+# ===== CONFIGURATION =====
+IMAGE_NAME="devops-build"
+IMAGE_TAG="latest"
+CONTAINER_NAME="devops-build"
+APP_PORT=80
+
+REMOTE_USER="ubuntu"
+REMOTE_HOST="172.31.27.2"
+REMOTE_DIR="/home/ubuntu/deploy"
+
+IMAGE_TAR="${IMAGE_NAME}.tar"
+
+# ===== BUILD CHECK =====
+echo "🔍 Checking local image..."
+docker image inspect ${IMAGE_NAME}:${IMAGE_TAG} > /dev/null 2>&1 \
+  || { echo "❌ Image not found. Build it first."; exit 1; }
+
+# ===== SAVE IMAGE =====
+echo "📦 Saving Docker image..."
+docker save ${IMAGE_NAME}:${IMAGE_TAG} -o ${IMAGE_TAR}
+
+# ===== COPY IMAGE =====
+echo "📤 Copying image to remote server..."
+ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${REMOTE_DIR}"
+scp ${IMAGE_TAR} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}
+
+# ===== DEPLOY ON REMOTE =====
+echo "🚀 Deploying on remote server..."
+
+ssh ${REMOTE_USER}@${REMOTE_HOST} << EOF
+  set -e
+  cd ${REMOTE_DIR}
+
+  echo "📥 Loading image..."
+  docker load -i ${IMAGE_TAR}
+
+  echo "🛑 Stopping old container (if any)..."
+  docker stop ${CONTAINER_NAME} || true
+  docker rm ${CONTAINER_NAME} || true
+
+  echo "▶️ Starting new container..."
+  docker run -d \
+    --name ${CONTAINER_NAME} \
+    -p ${APP_PORT}:${APP_PORT} \
+    --restart unless-stopped \
+    ${IMAGE_NAME}:${IMAGE_TAG}
+
+  echo "✅ Deployment complete"
+EOF
+
+# ===== CLEANUP =====
+rm -f ${IMAGE_TAR}
+
+echo "🎉 Deployment finished successfully!"
+

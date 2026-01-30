@@ -1,0 +1,92 @@
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        // DockerHub credentials stored in Jenkins
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+    }
+
+    stages {
+
+        stage('Checkout Repo') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def imageName = (env.BRANCH_NAME == 'dev') ? 'udhayakumarethiraj/dev' :
+                                    (env.BRANCH_NAME == 'main') ? 'udhayakumarethiraj/prod' : null
+                    def imageTag = 'latest'
+
+                    if (imageName != null) {
+                        echo "🚀 Building Docker image: ${imageName}:${imageTag}"
+                        sh "./build.sh ${imageName} ${imageTag}"
+                    } else {
+                        echo "Skipping build for branch: ${env.BRANCH_NAME}"
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            when {
+                expression { env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    def imageName = (env.BRANCH_NAME == 'dev') ? 'udhayakumarethiraj/dev' : 'udhayakumarethiraj/prod'
+                    def imageTag = 'latest'
+
+                    echo "🔑 Logging in to DockerHub..."
+                    sh """
+                      echo ${DOCKERHUB_CREDS_PSW} | docker login \
+                      -u ${DOCKERHUB_CREDS_USR} --password-stdin
+                    """
+
+                    echo "📦 Pushing Docker image: ${imageName}:${imageTag}"
+                    sh "docker push ${imageName}:${imageTag}"
+
+                    echo "✅ Docker image pushed successfully for branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Deploy Docker Image') {
+            when {
+                expression { env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    def imageName = (env.BRANCH_NAME == 'dev') ? 'udhayakumarethiraj/dev' : 'udhayakumarethiraj/prod'
+                    def imageTag = 'latest'
+
+                    echo "🚀 Deploying Docker image: ${imageName}:${imageTag}"
+                    sh "./deploy.sh ${imageName} ${imageTag} ${env.BRANCH_NAME}"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "🧹 Cleaning up Docker environment..."
+            sh "docker logout || true"
+            sh "docker image prune -f || true"
+        }
+        success {
+            echo "✅ Pipeline completed successfully for branch: ${env.BRANCH_NAME}"
+        }
+        failure {
+            echo "❌ Pipeline failed for branch: ${env.BRANCH_NAME}"
+        }
+    }
+}
+
+

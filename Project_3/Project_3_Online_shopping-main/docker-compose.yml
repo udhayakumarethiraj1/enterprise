@@ -1,0 +1,9 @@
+# docker-compose.yml
+services:
+  app:
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    container_name: devops-build-${BRANCH_NAME}   # unique per branch
+    ports:
+      - "${PORT_MAPPING}"
+    restart: unless-stopped
+
