@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: ap-south-1
+    ECR_REPO: 758234806674.dkr.ecr.ap-south-1.amazonaws.com/brain_task_project
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR"
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+
+  build:
+    commands:
+      - echo "Building Docker image"
+      - docker build -t brain_task_project:latest .
+      - docker tag brain_task_project:latest $ECR_REPO:latest
+
+  post_build:
+    commands:
+      - echo "Pushing Docker image"
+      - docker push $ECR_REPO:latest
+
+      # 🔹 CREATE DEPLOY ARTIFACT FOR LAMBDA
+      - IMAGE_URI=$ECR_REPO:latest
+      - echo "{\"imageUri\":\"$IMAGE_URI\"}" > image.json
+      - cat image.json
+
+artifacts:
+  files:
+    - image.json
+

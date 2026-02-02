@@ -1,0 +1,17 @@
+######################################################
+# Kube State metrics to Prometheus Monitoring Server
+######################################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-state-metrics-lb
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: kube-state-metrics
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
